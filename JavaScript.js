@@ -232,14 +232,13 @@ async function enviarAPI(sabor, precio, cantidad, promocion) {
 
     try {
         // CAMBIO: Puerto 3000 y ruta /imprimir para coincidir con server.js
-        const response = await fetch("http://localhost:3000/imprimir", {
-            method: 'POST',
-            mode: 'cors', // CAMBIO: de 'no-cors' a 'cors'
-            headers: { 
-                'Content-Type': 'application/json' 
-            },
-            body: JSON.stringify(datos)
-        });
+       // Línea 234 aproximadamente
+const response = await fetch("http://127.0.0.1:3000/imprimir", { // Cambiado de 7000 a 3000
+    method: 'POST',
+    mode: 'cors', // Asegúrate de que diga 'cors'
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+});
 
         if (!response.ok) {
             throw new Error(`Error en el servidor: ${response.status}`);

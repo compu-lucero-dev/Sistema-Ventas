@@ -6,7 +6,7 @@ let cuentaMesa = [];
 let limiteSabores = 0; // Nueva variable para saber cuántos clics esperar
 // Carga las ventas del día desde la memoria del navegador o inicia una lista vacía
 let ventasDelDia = JSON.parse(localStorage.getItem('ventasDelDia')) || [];
-
+let numeroOrdenActual = parseInt(localStorage.getItem('numeroOrden')) || 1;
 // --- GESTIÓN DE MESA ---
 
 function activarOferta(precio, nombre) {
@@ -112,33 +112,31 @@ async function cobrarMesaCompleta() {
     let total = cuentaMesa.reduce((sum, item) => sum + item.precio, 0);
     let metodoElegido = document.getElementById('metodoPago').value;
 
-    // 1. GENERAMOS EL TEXTO PARA EL MENSAJE DE CONFIRMACIÓN (Pero no para la impresora)
     let detalleResumen = cuentaMesa.map(i => `${i.nombre}`).join("\n");
 
-    // 2. CONFIRMACIÓN EN PANTALLA
-    if (confirm(`¿COBRAR?\n\n${detalleResumen}\n\nTOTAL: S/ ${total.toFixed(2)}`)) {
+    if (confirm(`¿COBRAR ORDEN #${numeroOrdenActual}?\n\n${detalleResumen}\n\nTOTAL: S/ ${total.toFixed(2)}`)) {
 
-        // --- GUARDAR PARA CIERRE DE CAJA ---
+        // --- ENVIAMOS EL NÚMERO DE ORDEN A LA API ---
+        const respuestaVenta = await enviarAPI(detalleResumen, total, 1, "Venta", numeroOrdenActual);
+        
+        // Si el servidor de Node respondió bien, aumentamos la orden
+        if (respuestaVenta && respuestaVenta.success) {
+            numeroOrdenActual++;
+            localStorage.setItem('numeroOrden', numeroOrdenActual);
+        }
+
         const nuevaVenta = {
             total: total,
             metodo: metodoElegido,
-            fecha: new Date().toISOString()
+            fecha: new Date().toISOString(),
+            orden: numeroOrdenActual - 1 // Guardamos qué número fue
         };
         ventasDelDia.push(nuevaVenta);
         localStorage.setItem('ventasDelDia', JSON.stringify(ventasDelDia));
-        // -----------------------------------
 
-        // 3. COMENTAMOS TODO EL ENVÍO A LA API E IMPRESIÓN
-         const resultado = await enviarAPI(detalleResumen, total, 1, "Venta");
-        if (resultado && resultado.success) {
-             console.log("Impresión exitosa");
-        }
-        
-
-        // 4. LIMPIEZA DE MESA (Esto DEBE quedar afuera para que la mesa se limpie)
         cuentaMesa = [];
         actualizarVistaMesa();
-        alert(`✅ Venta guardada en Reporte Azul (S/ ${total.toFixed(2)})`);
+        alert(`✅ Venta guardada y Ticket # ${numeroOrdenActual - 1} enviado`);
     }
 }
 
@@ -227,7 +225,8 @@ async function enviarAPI(sabor, precio, cantidad, promocion) {
         Precio: parseFloat(precio),
         Cantidad: parseInt(cantidad),
         Promocion: promocion || "",
-        MetodoPago: metodoElegido
+        MetodoPago: metodoElegido,
+        Orden: orden // <--- Enviamos el número al servidor.js
     };
 
     try {

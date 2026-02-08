@@ -231,15 +231,28 @@ async function enviarAPI(sabor, precio, cantidad, promocion) {
     };
 
     try {
-        const response = await fetch("http://127.0.0.1:7000", {
+        // CAMBIO: Puerto 3000 y ruta /imprimir para coincidir con server.js
+        const response = await fetch("http://localhost:3000/imprimir", {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            mode: 'cors', // CAMBIO: de 'no-cors' a 'cors'
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(datos)
         });
-        return {success: true };
+
+        if (!response.ok) {
+            throw new Error(`Error en el servidor: ${response.status}`);
+        }
+
+        const resultado = await response.json();
+        console.log("Respuesta del servidor:", resultado.message);
+        return { success: true };
+
     } catch (error) {
         console.error("Error de conexión con la API:", error);
+        // Si falla la conexión, al menos avisamos al usuario
+        alert("⚠️ No se pudo conectar con la impresora. Verifica que el servidor (Node.js) esté encendido.");
         return { success: false };
     }
 }

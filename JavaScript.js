@@ -230,18 +230,16 @@ async function enviarAPI(sabor, precio, cantidad, promocion) {
         MetodoPago: metodoElegido
     };
 
-    try {
-        const response = await fetch("http://127.0.0.1:7000", {
+   try {
+        // Asegúrate de que el puerto sea el mismo que en server.js (ej. 3000)
+        const response = await fetch("http://localhost:3000/imprimir", {
             method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            mode: 'cors', // <--- CAMBIADO de 'no-cors' a 'cors'
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify(datos)
         });
-        return {success: true };
-    } catch (error) {
-        console.error("Error de conexión con la API:", error);
-        return { success: false };
-    }
 }
 
 function mostrarNotificacion(mensaje, tipo = 'info') {

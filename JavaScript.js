@@ -118,15 +118,6 @@ async function cobrarMesaCompleta() {
     // 2. CONFIRMACIÓN EN PANTALLA
     if (confirm(`¿COBRAR?\n\n${detalleResumen}\n\nTOTAL: S/ ${total.toFixed(2)}`)) {
 
-
-        // --- MANDAR A IMPRIMIR CON EL NÚMERO DE ORDEN ---
-        const respuestaVenta = await enviarAPI(detalleResumen, total, 1, "Venta", numeroOrdenActual);
-        
-        if (respuestaVenta && respuestaVenta.success) {
-             // Si la impresión fue exitosa, subimos el número para la siguiente venta
-             numeroOrdenActual++;
-             localStorage.setItem('numeroOrden', numeroOrdenActual);
-        }
         // --- GUARDAR PARA CIERRE DE CAJA ---
         const nuevaVenta = {
             total: total,
@@ -148,7 +139,6 @@ async function cobrarMesaCompleta() {
         cuentaMesa = [];
         actualizarVistaMesa();
         alert(`✅ Venta guardada en Reporte Azul (S/ ${total.toFixed(2)})`);
-        alert(`✅ Venta guardada y ticket enviado (Orden #${numeroOrdenActual - 1})`);
     }
 }
 
@@ -237,9 +227,7 @@ async function enviarAPI(sabor, precio, cantidad, promocion) {
         Precio: parseFloat(precio),
         Cantidad: parseInt(cantidad),
         Promocion: promocion || "",
-        MetodoPago: metodoElegido,
-        Orden: orden // Pasamos el número de orden al servidor
-        
+        MetodoPago: metodoElegido
     };
 
     try {
@@ -453,7 +441,6 @@ function generarCierreCaja() {
     let total = 0;
 
     ventasDelDia.forEach(v => {
-        let numeroOrdenActual = parseInt(localStorage.getItem('numeroOrden')) || 1;
         if (v.metodo === "Efectivo") efectivo += v.total;
         else yape += v.total;
         total += v.total;

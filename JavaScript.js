@@ -114,22 +114,14 @@ async function cobrarMesaCompleta() {
 
     let detalleResumen = cuentaMesa.map(i => `${i.nombre}`).join("\n");
 
-    if (confirm(`¿COBRAR ORDEN #${numeroOrdenActual}?\n\n${detalleResumen}\n\nTOTAL: S/ ${total.toFixed(2)}`)) {
+    
 
-        // --- ENVIAMOS EL NÚMERO DE ORDEN A LA API ---
-        const respuestaVenta = await enviarAPI(detalleResumen, total, 1, "Venta", numeroOrdenActual);
-        
-        // Si el servidor de Node respondió bien, aumentamos la orden
-        if (respuestaVenta && respuestaVenta.success) {
-            numeroOrdenActual++;
-            localStorage.setItem('numeroOrden', numeroOrdenActual);
-        }
 
         const nuevaVenta = {
             total: total,
             metodo: metodoElegido,
             fecha: new Date().toISOString(),
-            orden: numeroOrdenActual - 1 // Guardamos qué número fue
+            
         };
         ventasDelDia.push(nuevaVenta);
         localStorage.setItem('ventasDelDia', JSON.stringify(ventasDelDia));
@@ -226,7 +218,6 @@ async function enviarAPI(sabor, precio, cantidad, promocion) {
         Cantidad: parseInt(cantidad),
         Promocion: promocion || "",
         MetodoPago: metodoElegido,
-        Orden: orden // <--- Enviamos el número al servidor.js
     };
 
     try {
